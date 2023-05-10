@@ -1,4 +1,5 @@
-﻿using FlightPlanner.Models;
+﻿using System;
+using FlightPlanner.Models;
 using FlightPlanner.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,13 +7,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace FlightPlanner.Controllers
 {
 
-    [Route("admin-api")]
+    [Route("admin-api/flights")]
     [ApiController]
     [Authorize]
     public class AdminApiController : ControllerBase
     {
         [HttpGet]
-        [Route("flights/{id}")]
+        [Route("{id:int}")]
         public IActionResult GetFlight(int id)
         {
             var flight = FlightStorage.GetFlight(id);
@@ -23,12 +24,28 @@ namespace FlightPlanner.Controllers
             return Ok(flight);
         }
         [HttpPut]
-        [Route("flights")]
 
         public IActionResult AddFlight(Flight flight)
         {
-            FlightStorage.AddFlight(flight);
-            return Created("",flight);
+            if (AdminApiValidator.HasInvalidValues(flight) || AdminApiValidator.IsSameAirport(flight) || AdminApiValidator.IsWrongDate(flight))
+            {
+                return BadRequest();
+            }
+
+            if (AdminApiValidator.IsFlightInList(flight))
+            {
+               return Conflict();
+            }
+
+            return Created("", FlightStorage.AddFlight(flight));
+        }
+
+        [HttpDelete]
+        [Route("{id:int}")]
+        public IActionResult DeleteFlight(int id)
+        {
+            FlightStorage.DeleteFlight(id);
+            return Ok();
         }
 
 
