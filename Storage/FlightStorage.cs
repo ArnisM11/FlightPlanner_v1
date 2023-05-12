@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using FlightPlanner.Controllers;
 using FlightPlanner.Models;
 using Microsoft.AspNetCore.Http;
@@ -12,6 +13,7 @@ namespace FlightPlanner.Storage
     public static class FlightStorage
     {
         public static List<Flight> _flights = new List<Flight>();
+        private static readonly object lockObject = new object();
         private static int _id = 1;
 
 
@@ -21,25 +23,36 @@ namespace FlightPlanner.Storage
         }
         public static Flight GetFlight(int id)
         {
-            return _flights.SingleOrDefault(flight => flight.Id == id);
+            lock (lockObject)
+            {
+                return _flights.SingleOrDefault(flight => flight.Id == id);
+            }
         }
 
         public static Flight AddFlight(Flight flight)
         {
-            flight.Id = _id++;
-            
-            _flights.Add(flight);
-            
+            lock (lockObject)
+            {
+                flight.Id = _id++;
+
+                _flights.Add(flight);
+            }
+
             return flight;
         }
 
         public static bool DeleteFlight(int id){
-            var flight = GetFlight(id);
-            if (flight == null)
+            lock (lockObject)
             {
-                return false;
+                var flight = GetFlight(id);
+                if (flight == null)
+                {
+                    return false;
+                }
+
+                _flights.Remove(flight);
             }
-            _flights.Remove(flight);
+
             return true;
         }
         public static List<Airport> FindAirport(string phrase)

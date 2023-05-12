@@ -9,6 +9,7 @@ namespace FlightPlanner.Controllers
 {
     public static class AdminApiValidator
     {
+        private static readonly object lockObject = new object();
         public static bool HasInvalidValues(Flight flight)
         {
             if (string.IsNullOrWhiteSpace(flight.From?.Country) ||
@@ -45,26 +46,35 @@ namespace FlightPlanner.Controllers
 
        public static bool IsFlightInList(Flight flight2)
         {
-            foreach (var flight1 in FlightStorage._flights)
+            lock (lockObject)
             {
-                if (IsSameFlight(flight1, flight2))
+                var flightsCopy = new List<Flight>(FlightStorage._flights);
+                foreach (var flight1 in flightsCopy)
                 {
-                    return true;
+                    if (IsSameFlight(flight1, flight2))
+                    {
+                        return true;
+                    }
                 }
+                
             }
             return false;
         }
 
         public static bool IsSameFlight(Flight flight1, Flight flight2)
         {
-            if (flight1.From.AirportCode.ToUpper().Trim() == flight2.From.AirportCode.ToUpper().Trim() &&
-                flight1.To.AirportCode.ToUpper().Trim() == flight2.To.AirportCode.ToUpper().Trim() &&
-                flight1.Carrier.ToUpper().Trim() == flight2.Carrier.ToUpper().Trim() &&
-                flight1.DepartureTime == flight2.DepartureTime &&
-                flight1.ArrivalTime == flight2.ArrivalTime)
+            lock (lockObject)
             {
-                return true;
+                if (flight1.From.AirportCode.ToUpper().Trim() == flight2.From.AirportCode.ToUpper().Trim() &&
+                    flight1.To.AirportCode.ToUpper().Trim() == flight2.To.AirportCode.ToUpper().Trim() &&
+                    flight1.Carrier.ToUpper().Trim() == flight2.Carrier.ToUpper().Trim() &&
+                    flight1.DepartureTime == flight2.DepartureTime &&
+                    flight1.ArrivalTime == flight2.ArrivalTime)
+                {
+                    return true;
+                }
             }
+
             return false;
         }
 
