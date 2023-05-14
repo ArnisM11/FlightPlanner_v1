@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using FlightPlanner.Models;
 using FlightPlanner.Storage;
@@ -7,9 +8,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FlightPlanner.Controllers
 {
-    public static class AdminApiValidator
+    public class AdminApiValidator : BaseApiController
     {
+        public AdminApiValidator(FlightPlannerDbContext context) : base(context)
+        {
+        }
+
         private static readonly object lockObject = new object();
+
         public static bool HasInvalidValues(Flight flight)
         {
             if (string.IsNullOrWhiteSpace(flight.From?.Country) ||
@@ -24,50 +30,49 @@ namespace FlightPlanner.Controllers
             {
                 return true;
             }
-           
+
             return false;
         }
+
         public static bool IsSameAirport(Flight flight)
         {
             return flight.From.AirportCode.ToUpper().Trim() == flight.To.AirportCode.ToUpper().Trim();
         }
+
         public static bool IsWrongDate(Flight flight)
         {
-            if (!DateTime.TryParse(flight.DepartureTime, out DateTime departureTime) || !DateTime.TryParse(flight.ArrivalTime, out DateTime arrivalTime))
+            if (!DateTime.TryParse(flight.DepartureTime, out DateTime departureTime) ||
+                !DateTime.TryParse(flight.ArrivalTime, out DateTime arrivalTime))
             {
                 throw new ArgumentException("Invalid departure or arrival time! ");
             }
+
             if (departureTime >= arrivalTime)
             {
                 return true;
             }
+
             return false;
         }
 
-       public static bool IsFlightInList(Flight flight2)
+        public static bool IsFlightInList(Flight flightToCheck, FlightPlannerDbContext context)
         {
             lock (lockObject)
             {
-                var flightsCopy = new List<Flight>(FlightStorage._flights);
-                foreach (var flight1 in flightsCopy)
-                {
-                    if (IsSameFlight(flight1, flight2))
-                    {
-                        return true;
-                    }
-                }
-                
+                var flights = context.Flights.ToList();
+                return flights.Any(flight => IsSameFlight(flight, flightToCheck));
             }
-            return false;
         }
 
         public static bool IsSameFlight(Flight flight1, Flight flight2)
         {
-            lock (lockObject)
-            {
-                if (flight1.From.AirportCode.ToUpper().Trim() == flight2.From.AirportCode.ToUpper().Trim() &&
-                    flight1.To.AirportCode.ToUpper().Trim() == flight2.To.AirportCode.ToUpper().Trim() &&
-                    flight1.Carrier.ToUpper().Trim() == flight2.Carrier.ToUpper().Trim() &&
+            lock (lockObject){
+            
+                if (
+                    flight1.To != null && flight2.To != null && flight1.From != null && flight2.From != null &&
+                    flight1.From?.AirportCode.ToUpper().Trim() == flight2.From?.AirportCode.ToUpper().Trim() &&
+                    flight1.To?.AirportCode.ToUpper().Trim() == flight2.To?.AirportCode.ToUpper().Trim() &&
+                    flight1.Carrier?.ToUpper().Trim() == flight2.Carrier?.ToUpper().Trim() &&
                     flight1.DepartureTime == flight2.DepartureTime &&
                     flight1.ArrivalTime == flight2.ArrivalTime)
                 {
@@ -76,7 +81,27 @@ namespace FlightPlanner.Controllers
             }
 
             return false;
-        }
 
+
+            /*lock (lockObject)
+            {
+                if (flight1 == null || flight2 == null)
+                {
+                    return false;
+                }
+
+                if(flight1.From != null && flight2.From != null &&
+                       flight1.From.AirportCode?.ToUpper().Trim() == flight2.From.AirportCode?.ToUpper().Trim() &&
+                       flight1.To != null && flight2.To != null &&
+                       flight1.To.AirportCode?.ToUpper().Trim() == flight2.To.AirportCode?.ToUpper().Trim() &&
+                       flight1.Carrier?.ToUpper().Trim() == flight2.Carrier?.ToUpper().Trim() &&
+                       flight1.DepartureTime == flight2.DepartureTime &&
+                       flight1.ArrivalTime == flight2.ArrivalTime)
+                    return true;
+                return false;
+            }
+        }*/
+
+        }
     }
 }

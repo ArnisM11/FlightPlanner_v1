@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Linq;
 using FlightPlanner.Models;
 using FlightPlanner.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FlightPlanner.Controllers
 {
@@ -10,13 +12,18 @@ namespace FlightPlanner.Controllers
     [Route("admin-api/flights")]
     [ApiController]
     [Authorize]
-    public class AdminApiController : ControllerBase
+    public class AdminApiController : BaseApiController
     {
+        public AdminApiController(FlightPlannerDbContext context) : base(context){ }
+
         [HttpGet]
         [Route("{id:int}")]
         public IActionResult GetFlight(int id)
         {
-            var flight = FlightStorage.GetFlight(id);
+            var flight = _context.Flights
+                .Include(f => f.From)
+                .Include(f => f.To)
+                .SingleOrDefault(f => f.Id == id);
             if (flight == null)
             {
                 return NotFound();
@@ -32,22 +39,41 @@ namespace FlightPlanner.Controllers
                 return BadRequest();
             }
 
-            if (AdminApiValidator.IsFlightInList(flight))
+            if (AdminApiValidator.IsFlightInList(flight, _context))
             {
                return Conflict();
             }
 
-            return Created("", FlightStorage.AddFlight(flight));
+            var flightToAdd = new Flight
+            {
+                ArrivalTime = flight.ArrivalTime,
+                Carrier = flight.Carrier,
+                DepartureTime = flight.DepartureTime,
+                From = flight.From,
+                To = flight.To
+            };
+
+            _context.Flights.Add(flightToAdd);
+            _context.SaveChanges();
+
+            return Created("", flightToAdd);
         }
 
         [HttpDelete]
         [Route("{id:int}")]
         public IActionResult DeleteFlight(int id)
         {
-            FlightStorage.DeleteFlight(id);
+            var flight = _context.Flights.SingleOrDefault(f => f.Id == id);
+            if (flight == null)
+            {
+                return NotFound();
+            }
+
+            _context.Remove(flight);
+            _context.SaveChanges();
+
             return Ok();
         }
-
 
     }
 }
