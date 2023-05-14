@@ -44,19 +44,10 @@ namespace FlightPlanner.Controllers
                return Conflict();
             }
 
-            var flightToAdd = new Flight
-            {
-                ArrivalTime = flight.ArrivalTime,
-                Carrier = flight.Carrier,
-                DepartureTime = flight.DepartureTime,
-                From = flight.From,
-                To = flight.To
-            };
-
-            _context.Flights.Add(flightToAdd);
+            _context.Flights.Add(flight);
             _context.SaveChanges();
 
-            return Created("", flightToAdd);
+            return Created("", flight);
         }
 
         [HttpDelete]
