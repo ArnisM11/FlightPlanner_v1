@@ -1,5 +1,7 @@
-﻿using FlightPlanner.Models;
+﻿using System.Collections.Generic;
+using FlightPlanner.Models;
 using Microsoft.EntityFrameworkCore;
+using FlightPlanner.Storage;
 
 namespace FlightPlanner
 {
@@ -8,6 +10,7 @@ namespace FlightPlanner
         public FlightPlannerDbContext(DbContextOptions options) : base(options)
         {
         }
+        
         
         public DbSet<Flight> Flights { get; set; }
         public DbSet<Airport> Airports { get; set; }

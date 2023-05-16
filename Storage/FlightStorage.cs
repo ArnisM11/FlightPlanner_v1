@@ -1,97 +1,103 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Threading;
-using FlightPlanner.Controllers;
 using FlightPlanner.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FlightPlanner.Storage
 {
-    public static class FlightStorage
+    public class FlightStorage
     {
-        public static List<Flight> _flights = new List<Flight>();
+        private readonly FlightPlannerDbContext _context;
+
+        public FlightStorage(FlightPlannerDbContext context)
+        {
+            _context = context;
+        }
+
         private static readonly object lockObject = new object();
-        private static int _id = 1;
-
-
-        public static void Clear(){
-            _flights.Clear();
-            _id = 1;
+        
+        public void Clear(){
+            _context.Flights.RemoveRange(_context.Flights);
+            _context.Airports.RemoveRange(_context.Airports);
+            _context.SaveChanges();
         }
-        public static Flight GetFlight(int id)
+        public Flight GetFlight(int id)
         {
             lock (lockObject)
             {
-                return _flights.SingleOrDefault(flight => flight.Id == id);
+                return _context.Flights.Include(flight => flight.From)
+                    .Include(flight => flight.To)
+                    .SingleOrDefault(flight => flight.Id == id);
             }
         }
 
-        public static Flight AddFlight(Flight flight)
+        public Flight AddFlight(Flight flightToAdd)
         {
-            lock (lockObject)
-            {
-                flight.Id = _id++;
-
-                _flights.Add(flight);
-            }
-
-            return flight;
+            _context.Flights.Add(flightToAdd);
+            _context.SaveChanges();
+            return flightToAdd;
         }
 
-        public static bool DeleteFlight(int id){
+        public bool DeleteFlight(int id){
             lock (lockObject)
             {
-                var flight = GetFlight(id);
+                var flight = _context.Flights.SingleOrDefault(f => f.Id == id);
                 if (flight == null)
                 {
                     return false;
                 }
 
-                _flights.Remove(flight);
+                _context.Remove(flight);
+                _context.SaveChanges();
+                return true;
             }
-
-            return true;
         }
-        public static List<Airport> FindAirport(string phrase)
+        public List<Airport> FindAirport(string phrase)
         {
-            var airports = new List<Airport>();
             var formattedPhrase = phrase.ToLower().Trim();
 
-            foreach (var flight in _flights)
-            {
-                if (flight.From.City.ToLower().Contains(formattedPhrase) ||
-                    flight.From.Country.ToLower().Contains(formattedPhrase) ||
-                    flight.From.AirportCode.ToLower().Contains(formattedPhrase))
-                {
-                    airports.Add(flight.From);
-                    return airports.ToList();
-                }
-
-                if (flight.To.City.ToLower().Contains(formattedPhrase) ||
-                    flight.To.Country.ToLower().Contains(formattedPhrase) ||
-                    flight.To.AirportCode.ToLower().Contains(formattedPhrase))
-                {
-                    airports.Add(flight.To);
-                    return airports.ToList();
-                }
-            }
-
-            return airports.ToList();
+            var airports = _context.Airports
+                .Where(airport => airport.City.ToLower().Contains(formattedPhrase) ||
+                                  airport.Country.ToLower().Contains(formattedPhrase) ||
+                                  airport.AirportCode.ToLower().Contains(formattedPhrase)).ToList(); 
+            
+            return airports;
         }
 
-        public static PageResult SearchFlight(FlightSearch search)
+        public PageResult SearchFlight(FlightSearch search)
         {
             var result = new PageResult();
-            var flights = _flights.Where(flight =>
-                flight.DepartureTime.Contains(search.DepartureDate) &&
-                flight.From.AirportCode.ToLower().Contains(search.From.ToLower().Trim()) &&
-                flight.To.AirportCode.ToLower().Contains(search.To.ToLower().Trim())).ToList();
-            result.Items = flights;
-            result.TotalItems = flights.Count;
+            var totalItems = 0;
+            var items = new List<Flight>();
+            var flight = _context.Flights
+                .Include(flight => flight.From)
+                .Include(flight => flight.To)
+                .FirstOrDefault(flight => 
+                    flight.DepartureTime.Contains(search.DepartureDate) &&
+                    flight.From.AirportCode == search.From &&
+                    flight.To.AirportCode == search.To);
+            if (flight != null)
+            {
+                items.Add(flight);
+                totalItems++;
+            }
+            result.Items = items;
+            result.TotalItems = totalItems;
             return result;
+        }
+
+        public bool FlightAlreadyExists(Flight request)
+        {
+            return _context.Flights.Any(f => f.From.City == request.From.City &&
+                                             f.From.Country == request.From.Country &&
+                                             f.From.AirportCode == request.From.AirportCode &&
+                                             f.To.City == request.To.City &&
+                                             f.To.Country == request.To.Country &&
+                                             f.To.AirportCode == request.To.AirportCode &&
+                                             f.Carrier == request.Carrier &&
+                                             f.ArrivalTime == request.ArrivalTime &&
+                                             f.DepartureTime == request.DepartureTime);
         }
     }
 }

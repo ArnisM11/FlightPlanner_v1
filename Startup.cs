@@ -11,8 +11,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FlightPlanner.Handlers;
+using FlightPlanner.Storage;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace FlightPlanner
 {
@@ -38,6 +40,7 @@ namespace FlightPlanner
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
             services.AddDbContext<FlightPlannerDbContext>(options => 
                 options.UseSqlServer(Configuration.GetConnectionString("flight-planner")));
+            services.AddScoped<FlightStorage>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

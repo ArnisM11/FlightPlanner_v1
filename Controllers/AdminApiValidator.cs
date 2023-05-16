@@ -8,11 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FlightPlanner.Controllers
 {
-    public class AdminApiValidator : BaseApiController
+    public class AdminApiValidator 
     {
-        public AdminApiValidator(FlightPlannerDbContext context) : base(context)
-        {
-        }
 
         private static readonly object lockObject = new object();
 
@@ -55,7 +52,7 @@ namespace FlightPlanner.Controllers
             return false;
         }
 
-        public static bool IsFlightInList(Flight flightToCheck, FlightPlannerDbContext context)
+        /*public static bool IsFlightInList(Flight flightToCheck, FlightPlannerDbContext context)
         {
             lock (lockObject)
             {
@@ -82,26 +79,6 @@ namespace FlightPlanner.Controllers
 
             return false;
 
-
-            /*lock (lockObject)
-            {
-                if (flight1 == null || flight2 == null)
-                {
-                    return false;
-                }
-
-                if(flight1.From != null && flight2.From != null &&
-                       flight1.From.AirportCode?.ToUpper().Trim() == flight2.From.AirportCode?.ToUpper().Trim() &&
-                       flight1.To != null && flight2.To != null &&
-                       flight1.To.AirportCode?.ToUpper().Trim() == flight2.To.AirportCode?.ToUpper().Trim() &&
-                       flight1.Carrier?.ToUpper().Trim() == flight2.Carrier?.ToUpper().Trim() &&
-                       flight1.DepartureTime == flight2.DepartureTime &&
-                       flight1.ArrivalTime == flight2.ArrivalTime)
-                    return true;
-                return false;
-            }
         }*/
-
-        }
     }
 }
