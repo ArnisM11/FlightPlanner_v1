@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
-using FlightPlanner.Models;
-using FlightPlanner.Storage;
+using FlightPlanner.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlightPlanner.Controllers

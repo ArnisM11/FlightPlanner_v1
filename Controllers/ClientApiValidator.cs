@@ -1,21 +1,16 @@
-﻿using FlightPlanner.Models;
-
+﻿
 namespace FlightPlanner.Controllers
 {
     public static class ClientApiValidator
     {
-        public static bool HasInvalidValues(FlightSearch flightSearch)
+        public static bool HasInvalidValues()
         {
-            if (flightSearch.From == null ||
-                flightSearch.To == null ||
-                flightSearch.DepartureDate == null)
-                return true;
-            return false;
+            return true;
         }
 
-        public static bool IsSameAirport(FlightSearch flightSearch)
+        public static bool IsSameAirport()
         {
-            return flightSearch.From == flightSearch.To;
+            return true;
         }
     }
 }

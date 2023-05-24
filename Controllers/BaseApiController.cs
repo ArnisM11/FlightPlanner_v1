@@ -1,16 +1,15 @@
-﻿using FlightPlanner.Storage;
+﻿using FlightPlanner.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlightPlanner.Controllers
 {
     public abstract class BaseApiController : ControllerBase
     {
-        protected FlightPlannerDbContext _context;
-        protected FlightStorage _flightStorage;
+        protected IFlightPlannerDbContext _context;
+        
 
-        protected BaseApiController(FlightStorage flightStorage,FlightPlannerDbContext context )
+        protected BaseApiController(IFlightPlannerDbContext context )
         {
-            _flightStorage = flightStorage;
             _context = context;
         }
     }
