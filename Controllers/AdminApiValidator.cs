@@ -50,34 +50,5 @@ namespace FlightPlanner.Controllers
 
             return false;
         }
-
-        /*public static bool IsFlightInList(Flight flightToCheck, FlightPlannerDbContext context)
-        {
-            lock (lockObject)
-            {
-                var flights = context.Flights.ToList();
-                return flights.Any(flight => IsSameFlight(flight, flightToCheck));
-            }
-        }
-
-        public static bool IsSameFlight(Flight flight1, Flight flight2)
-        {
-            lock (lockObject){
-            
-                if (
-                    flight1.To != null && flight2.To != null && flight1.From != null && flight2.From != null &&
-                    flight1.From?.AirportCode.ToUpper().Trim() == flight2.From?.AirportCode.ToUpper().Trim() &&
-                    flight1.To?.AirportCode.ToUpper().Trim() == flight2.To?.AirportCode.ToUpper().Trim() &&
-                    flight1.Carrier?.ToUpper().Trim() == flight2.Carrier?.ToUpper().Trim() &&
-                    flight1.DepartureTime == flight2.DepartureTime &&
-                    flight1.ArrivalTime == flight2.ArrivalTime)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-
-        }*/
     }
 }

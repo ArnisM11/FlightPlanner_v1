@@ -7,12 +7,14 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using FlightPlanner.Core.Models;
 using FlightPlanner.Core.Services;
+using FlightPlanner.Core.Validations;
 using FlightPlanner.Data;
 using FlightPlanner.Handlers;
 using FlightPlanner.Services;
-
+using FlightPlanner.Services.Validations;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 
 namespace FlightPlanner
@@ -45,6 +47,13 @@ namespace FlightPlanner
             services.AddScoped<IEntityService<Airport>, EntityService<Airport>>();
             services.AddScoped<IFlightService, FlightService>();
             services.AddSingleton<IMapper>(AutoMapperConfig.CreateMapper());
+            services.AddScoped<IValidation, FlightValidator>();
+            services.AddScoped<IValidation, FlightCarrierValidator>();
+            services.AddScoped<IValidation, FlightTimesValidator>();
+            services.AddScoped<IValidation, AirportValidator>();
+            services.AddScoped<IValidation, AirportPropsValidator>();
+            services.AddScoped<IValidation, FlightTimesIntervalValidator>();
+            services.AddScoped<IValidation, FlightAirportValidator>();
 
 
         }

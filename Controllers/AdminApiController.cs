@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using FlightPlanner.Controllers;
 using FlightPlanner.Core.Models;
 using FlightPlanner.Core.Services;
+using FlightPlanner.Core.Validations;
 using FlightPlanner.Data;
 using FlightPlanner.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -19,10 +21,12 @@ namespace FlightPlanner.Controllers
     {
         private readonly IFlightService _flightService;
         private readonly IMapper _mapper;
-        public AdminApiController(IFlightPlannerDbContext context, IFlightService service, IMapper mapper) : base(context)
+        private readonly IEnumerable<IValidation> _validators;
+        public AdminApiController(IFlightPlannerDbContext context, IFlightService service, IMapper mapper, IEnumerable<IValidation> validators) : base(context)
         {
             _flightService = service;
             _mapper = mapper;
+            _validators = validators;
         }
 
         [HttpGet]
@@ -41,6 +45,15 @@ namespace FlightPlanner.Controllers
         public IActionResult AddFlight(AddFlightRequest flightToAdd)
         {
             var flight = _mapper.Map<Flight>(flightToAdd);
+            
+            if(!_validators.All(v => v.IsValid(flight)))
+            {
+                return BadRequest();
+            }
+            if (_flightService.FlightExists(flight))
+            {
+                return Conflict();
+            }
             _flightService.Create(flight);
             return Created("",_mapper.Map<AddFlightRequest>(flight));
         }
