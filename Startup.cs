@@ -42,18 +42,10 @@ namespace FlightPlanner
             services.AddDbContext<FlightPlannerDbContext>(options => 
                 options.UseSqlServer(Configuration.GetConnectionString("flight-planner")));
             services.AddTransient<IFlightPlannerDbContext, FlightPlannerDbContext>();
-            services.AddScoped<IDbService, DbService>();
-            services.AddScoped<IEntityService<Flight>, EntityService<Flight>>();
-            services.AddScoped<IEntityService<Airport>, EntityService<Airport>>();
-            services.AddScoped<IFlightService, FlightService>();
             services.AddSingleton<IMapper>(AutoMapperConfig.CreateMapper());
-            services.AddScoped<IValidation, FlightValidator>();
-            services.AddScoped<IValidation, FlightCarrierValidator>();
-            services.AddScoped<IValidation, FlightTimesValidator>();
-            services.AddScoped<IValidation, AirportValidator>();
-            services.AddScoped<IValidation, AirportPropsValidator>();
-            services.AddScoped<IValidation, FlightTimesIntervalValidator>();
-            services.AddScoped<IValidation, FlightAirportValidator>();
+            services.RegisterServices();
+            services.RegisterValidations();
+            
 
 
         }

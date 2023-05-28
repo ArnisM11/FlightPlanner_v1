@@ -22,6 +22,7 @@ namespace FlightPlanner.Controllers
         private readonly IFlightService _flightService;
         private readonly IMapper _mapper;
         private readonly IEnumerable<IValidation> _validators;
+        private static readonly object _lock = new object();
         public AdminApiController(IFlightPlannerDbContext context, IFlightService service, IMapper mapper, IEnumerable<IValidation> validators) : base(context)
         {
             _flightService = service;
@@ -44,17 +45,23 @@ namespace FlightPlanner.Controllers
 
         public IActionResult AddFlight(AddFlightRequest flightToAdd)
         {
-            var flight = _mapper.Map<Flight>(flightToAdd);
             
-            if(!_validators.All(v => v.IsValid(flight)))
+            var flight = _mapper.Map<Flight>(flightToAdd);
+            lock (_lock)
             {
-                return BadRequest();
+                if (!_validators.All(v => v.IsValid(flight)))
+                {
+                    return BadRequest();
+                }
+
+                if (_flightService.FlightExists(flight))
+                {
+                    return Conflict();
+                }
+
+                _flightService.Create(flight);
             }
-            if (_flightService.FlightExists(flight))
-            {
-                return Conflict();
-            }
-            _flightService.Create(flight);
+
             return Created("",_mapper.Map<AddFlightRequest>(flight));
         }
 
@@ -62,7 +69,13 @@ namespace FlightPlanner.Controllers
         [Route("{id:int}")]
         public IActionResult DeleteFlight(int id)
         {
-            
+
+            var flight = _flightService.GetFullFlightById(id);
+            if (flight != null)
+            {
+                _flightService.Delete<Flight>(flight);
+            }
+
             return Ok();
         }
 
