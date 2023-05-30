@@ -1,17 +1,21 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using FlightPlanner.Core.Models;
+using FlightPlanner.Core.Services;
+using FlightPlanner.Core.Validations;
+using FlightPlanner.Data;
 using FlightPlanner.Handlers;
+using FlightPlanner.Services;
+using FlightPlanner.Services.Validations;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+
 
 namespace FlightPlanner
 {
@@ -35,6 +39,23 @@ namespace FlightPlanner
             });
             services.AddAuthentication("BasicAuthentication")
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
+            services.AddDbContext<FlightPlannerDbContext>(options => 
+                options.UseSqlServer(Configuration.GetConnectionString("flight-planner")));
+            services.AddTransient<IFlightPlannerDbContext, FlightPlannerDbContext>();
+            services.AddScoped<IDbService, DbService>();
+            services.AddScoped<IEntityService<Flight>, EntityService<Flight>>();
+            services.AddScoped<IEntityService<Airport>, EntityService<Airport>>();
+            services.AddScoped<IFlightService, FlightService>();
+            services.AddSingleton<IMapper>(AutoMapperConfig.CreateMapper());
+            services.AddScoped<IValidation, FlightValidator>();
+            services.AddScoped<IValidation, FlightCarrierValidator>();
+            services.AddScoped<IValidation, FlightTimesValidator>();
+            services.AddScoped<IValidation, AirportValidator>();
+            services.AddScoped<IValidation, AirportPropsValidator>();
+            services.AddScoped<IValidation, FlightTimesIntervalValidator>();
+            services.AddScoped<IValidation, FlightAirportValidator>();
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

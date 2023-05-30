@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 
 namespace FlightPlanner.Handlers
 {
-    public class BasicAuthenticationHandler: AuthenticationHandler<AuthenticationSchemeOptions>
+    public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
         public BasicAuthenticationHandler(
             IOptionsMonitor<AuthenticationSchemeOptions> options,

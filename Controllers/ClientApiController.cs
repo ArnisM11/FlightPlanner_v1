@@ -1,48 +1,36 @@
-﻿using FlightPlanner.Models;
-using FlightPlanner.Storage;
-using FlightPlanner.Controllers;
+﻿using FlightPlanner.Controllers;
+using FlightPlanner.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlightPlanner.Controllers
 {
     [Route("api")]
     [ApiController]
-    public class ClientApiController : ControllerBase
+    public class ClientApiController : BaseApiController
     {
+        public ClientApiController(IFlightPlannerDbContext context):base(context) { }
+
         [Route("airports")]
         [HttpGet]
         public IActionResult GetAirport(string search)
         {
-            var searchResult = FlightStorage.FindAirport(search);
-            return Ok(searchResult);
+            //var searchResult = _flightStorage.FindAirport(search);
+            return Ok();
         }
 
         [Route("flights/search")]
         [HttpPost]
-        public IActionResult SearchFlight(FlightSearch flightSearch)
+        public IActionResult SearchFlight()
         {
-            if (ClientApiValidator.HasInvalidValues(flightSearch) ||
-                ClientApiValidator.IsSameAirport(flightSearch))
-            {
-                return BadRequest();
-            }
-
-            var result = FlightStorage.SearchFlight(flightSearch);
-            return Ok(result);
+            
+            return Ok();
         }
 
         [Route("flights/{id:int}")]
         [HttpGet]
-        public IActionResult GetFlight(int id)
+        public IActionResult GetFlight()
         {
-            var flight = FlightStorage.GetFlight(id);
-
-            if (flight == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(flight);
+            return Ok();
         }
     }
 }
