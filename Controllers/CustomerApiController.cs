@@ -13,13 +13,13 @@ namespace FlightPlanner.Controllers
 {
     [Route("api")]
     [ApiController]
-    public class CustomerApiController : BaseApiController
+    public class CustomerApiController : ControllerBase
     {
         private readonly IFlightService _flightService;
         private readonly IAirportService _airportService;
         private readonly IMapper _mapper;
         
-        public CustomerApiController(IFlightPlannerDbContext context, IFlightService service, IMapper mapper, IEnumerable<IValidation> validators, IAirportService airportService) : base(context)
+        public CustomerApiController(IFlightPlannerDbContext context, IFlightService service, IMapper mapper, IEnumerable<IValidation> validators, IAirportService airportService)
         {
             _flightService = service;
             _mapper = mapper;
