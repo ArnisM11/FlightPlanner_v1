@@ -18,12 +18,11 @@ namespace FlightPlanner.Controllers
         private readonly IFlightService _flightService;
         private readonly IAirportService _airportService;
         private readonly IMapper _mapper;
-        //private readonly IEnumerable<IValidation> _validators;
+        
         public CustomerApiController(IFlightPlannerDbContext context, IFlightService service, IMapper mapper, IEnumerable<IValidation> validators, IAirportService airportService) : base(context)
         {
             _flightService = service;
             _mapper = mapper;
-            //_validators = validators;
             _airportService = airportService;
         }
 
